@@ -37,19 +37,20 @@ def fill_buffer_randomly(env_fn,
 
     env = env_fn()
     pbar = tqdm(total=buffer.size)
+    print("Filling buffer...")
     while not buffer.is_full():
         obs, done = env.reset()
         obs = scale_func(obs)
-        for step in range(env.max_svs):
-            act = np.random.randn(*env.action_space.shape)
-            act1,obs2, pwc, opc, done = env.step(act)
+        step = 0
+        while not done:
+            act = env.action_space.sample()
+            act1, obs2, pwc, opc, done = env.step(act)
             rew = pwc + opc
             obs2 = scale_func(obs2)
             buffer.store(obs, act, rew, done, obs2)
-            if done:
-                pbar.update(step + 1)
-                break
             obs = obs2
+            step += 1
+        pbar.update(step + 1)
 
 
 if __name__ == '__main__':

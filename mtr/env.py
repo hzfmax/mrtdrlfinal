@@ -197,7 +197,6 @@ class TubeEnv(Env):
         self.stock_size = data['stock_size'] # stock size
         self.stochastic = stochastic  # Wether this is a stochastic env
         self.headway_safe = data['sft_hdw']  # safety headway
-        self.max_svs = np.int64((self.t_end - self.t_start) * 3600 / data['dft_hdw']) + 1
         self.random_factor = random_factor
         self.Wtrain = data['train_weight']
         self.Wman = data['psg_weight']
@@ -242,7 +241,7 @@ class TubeEnv(Env):
 
         self.var_max = (self.var + self.nopt / 2 * self.var_int).astype(np.int64)
         self.var_min = (self.var - self.nopt / 2 * self.var_int).astype(np.int64)
-        print(self.var, self.var_min, self.var_max)
+        self.max_svs = np.int64((self.t_end - self.t_start) * 3600 / self.var_min[0]) * 5
 
         # Init state
         self.offset = np.append(0, self.var_min[1:]).cumsum()[0::2].astype(np.int64)
@@ -352,25 +351,27 @@ if __name__ == "__main__":
     from utils.loader import get_EAL
     data = get_EAL(read=False, store=True)
     data['demand'] = data['demand'] * 0.25
-    env = TubeEnv(data)
-    # print(data)
-
-    obs = env.reset()
-    print("totol number of passengers:", int(env.CDD[-1, ...].sum()))
-    done = False
 
     # no optimization
-    topc, tpwc = 0, 0
-    timetable = []
-    while not done:
-        act = np.zeros(env.action_space.shape)
-        actt, obs2, pwc, opc, done = env.step(act)
-        timetable.append(actt)
-        topc += opc
-        tpwc += pwc
-    print(np.array(timetable))
-    print(topc, tpwc, topc + tpwc, env.train, "\n", f"Last departure: {int(env.dpt[0])}", '\n', env.eff_board_t)
-    print("completed")
+    # for ele in np.linspace(-1, 1, 7):
+    for env in range(1000):
+        env = TubeEnv(data)
+        obs = env.reset()
+        # print("totol number of passengers:", int(env.CDD[-1, ...].sum()))
+        done = False
+        topc, tpwc = 0, 0
+        timetable = []
+        while not done:
+            # act = np.full(env.action_space.shape, ele)
+            act = env.action_space.sample()
+            actt, obs2, pwc, opc, done = env.step(act)
+            timetable.append(actt)
+            topc += opc
+            tpwc += pwc
+        print(tpwc + topc)
+    # print(np.array(timetable))
+    # print(topc, tpwc, topc + tpwc, env.train, "\n", f"Last departure: {int(env.dpt[0])}", '\n', env.eff_board_t)
+    # print("completed")
 
 
     # acta = []

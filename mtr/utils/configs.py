@@ -9,57 +9,6 @@ import torch
 from utils.loader import get_EAL
 
 
-def get_env_kwargs(demo=False, **kwargs):
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    # basic information
-    parser.add_argument('--t_start', default=7, type=int)
-    parser.add_argument('--t_end', default=8, type=int)
-    parser.add_argument('--capacity', default= 250, type=int)
-    parser.add_argument('--alpha',
-                        default=kwargs.get('alpha') or 0.5,
-                        type=float)
-    parser.add_argument('--turn', default=218, type=int)
-    parser.add_argument('--stock_size', default=31, type=int)
-    parser.add_argument('--num_station', default= 12, type=int)
-    parser.add_argument('--stochastic',
-                        default=kwargs.get('stochastic') or False,
-                        action='store_true')
-    parser.add_argument('--random_factor',
-                        default=kwargs.get('random_factor') or 0.25,
-                        type=float)
-
-    # Decision Variable related (unit -- second)
-    parser.add_argument('--headway_min', default=100, type=int)
-    parser.add_argument('--headway_opt', default=9, type=int)
-    parser.add_argument('--headway_int', default=50, type=int)
-    parser.add_argument('--headway_safe', default=60, type=int)
-    parser.add_argument('--dwell_min', default=20, type=int)
-    parser.add_argument('--dwell_int', default=5, type=int)
-    parser.add_argument('--dwell_opt', default=6, type=int)
-    parser.add_argument('--run_int', default=10, type=int)
-    parser.add_argument('--run_opt', default=4, type=int)
-
-    args, unknown = parser.parse_known_args()
-    if not args.stochastic:
-        args.random_factor = 0.
-    if demo:
-        args.t_start, args.t_end = 7.5, 9.5
-        args.capacity, args.stock_size, args.num_station = 330, 14, 4
-
-    kwargs = vars(args)
-
-#    data = get_victoria_data()
-    data = get_EAL()
-    # data['demand'] *= 0.8
-    # data['demand'] = np.moveaxis(data['demand'], 2, 0)
-
-    kwargs['data'] = data
-    
-    return kwargs
-
-
 def get_device(gpu=0):
     if torch.cuda.is_available():
         os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
@@ -98,9 +47,7 @@ def get_ddpg_kwargs():
 def get_configs(algo='ddpg',
                 stochastic=False,
                 demo=False,
-                seed=123,
-                alpha=0.5,
-                random_factor=0.25):
+                seed=123):
     parser = argparse.ArgumentParser()
 
     # Model Params
@@ -108,34 +55,18 @@ def get_configs(algo='ddpg',
     parser.add_argument('--seed', default=seed, type=int)
 
     args, unknown = parser.parse_known_args()
-    env_kwargs = get_env_kwargs(demo=demo,
-                                alpha=alpha,
-                                stochastic=stochastic,
-                                random_factor=random_factor)
+    env_kwargs = dict(data=get_EAL(read=False))
     algo_kwargs = get_ddpg_kwargs()
 
     if args.seed:
         env_kwargs['seed'] = args.seed + 1
-
-    env_kwargs['alpha'] = alpha
-    
-    del env_kwargs['t_start']
-    del env_kwargs['t_end']
-    del env_kwargs['capacity']
-    del env_kwargs['turn']
-    del env_kwargs['stock_size']
-    del env_kwargs['num_station']
-    del env_kwargs['headway_min']
-    del env_kwargs['headway_safe']
-    del env_kwargs['dwell_min']
 
     # get exp_name
     # from mtr.env import TubeEnv
     from env import TubeEnv
     exp_name = ("Demo" if demo else "Main") + (
         "Sto" if stochastic else "Det") + env_kwargs['data']['name'][:3]
-    exp_name += f"{TubeEnv.name}_v{TubeEnv.version}" + f"_A{env_kwargs['alpha'] * 100:.0f}_"
-    exp_name += f"R{env_kwargs['random_factor'] * 100:.0f}"
+    exp_name += f"{TubeEnv.name}_v{TubeEnv.version}"
 
     return args, algo_kwargs, env_kwargs
 

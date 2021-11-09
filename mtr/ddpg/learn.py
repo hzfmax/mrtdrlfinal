@@ -5,9 +5,10 @@ import numpy as np
 import torch
 import time
 
-from ddpg.ddpg import DDPG
-from ddpg.utils import CosineAnnealingNormalNoise, ReplayBuffer
-from utils.run_utils import evaluate_policy, fill_buffer_randomly, scale
+from mtr.ddpg.ddpg import DDPG
+from mtr.ddpg.utils import CosineAnnealingNormalNoise, ReplayBuffer
+from mtr.utils.run_utils import evaluate_policy, fill_buffer_randomly, scale
+from mtr.utils.loader import LOG_DIR
 
 
 def learn(env_fn,
@@ -61,8 +62,8 @@ def learn(env_fn,
     try:
         # main loop
         for epoch in range(epochs):
-            ret_ep, act_ep = 0., []
-            act_ep1 = []
+            total_reward, decision_embeddings = 0., []
+            translated_decisions = []
             pwc_ep = 0
             opc_ep = 0
             state_ep = []
@@ -83,13 +84,12 @@ def learn(env_fn,
                 buffer.store(obs, act, rew, done, obs2)
 
                 # record
-                act_ep.append(act)
-                act_ep1.append(act1)
+                decision_embeddings.append(act)
+                translated_decisions.append(act1)
                 
-                ret_ep += rew
+                total_reward += rew
                 pwc_ep += pwc
                 opc_ep += opc
-                
 
                 obs = obs2
 
@@ -97,16 +97,16 @@ def learn(env_fn,
                 model.update(buffer, rwd_scale)
                 if done:
                     # update the global optima
-                    if q_opt >= ret_ep:
-                        q_opt = ret_ep
-                        pwc_opt =pwc_ep
+                    if q_opt >= total_reward:
+                        q_opt = total_reward
+                        pwc_opt = pwc_ep
                         opc_opt = opc_ep
-                        pop_opt = np.asarray(act_ep)
-                        pop_opt1 = np.asarray(act_ep1)
+                        pop_opt = np.asarray(decision_embeddings)
+                        pop_opt1 = np.asarray(translated_decisions)
                         state_opt = state_ep
 
-                    if epoch % 500 == 0:
-                        print(f'EP: {epoch}|EpR: {ret_ep:.0f}| Q*: {q_opt:.0f}| T: {time.time()-start:.0f}|N:{noise.sigma:.3f}')
+                    if epoch % 5 == 0:
+                        print(f'EP: {epoch}|EpR: {total_reward:.0f}| Q*: {q_opt:.0f}| T: {time.time()-start:.0f}|N:{noise.sigma:.3f}')
 
                     noise.step()
                     model.lr_step()
@@ -114,11 +114,16 @@ def learn(env_fn,
     except KeyboardInterrupt:
         pass
     finally:
+        import os.path as osp
         print("done")
         print("evaluation")
         print(f' Q*: {q_opt:.0f}')
         print(f' pwc*: {pwc_opt:.0f}')
         print(f' opc*: {opc_opt:.0f}')
+
+        out = dict(Q=q_opt, pwc_opt=pwc_opt, opc_opt=opc_opt, pop=pop_opt, pop_opt1=pop_opt1)
+        outpath = osp.join(LOG_DIR, "result.npy")
+        np.save(outpath, out)
 
         print("action")
         print(len(pop_opt1))

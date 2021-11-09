@@ -5,7 +5,7 @@ from numpy.lib.npyio import save
 
 ROOT = osp.abspath(osp.dirname(osp.dirname(__file__)))
 DATA_DIR = osp.join(ROOT, 'data')
-DEFAULT_LOG_DIR = osp.join(ROOT, 'log')
+LOG_DIR = osp.join(ROOT, 'logs')
 
 
 def get_data(line_name='Victoria', read=True):

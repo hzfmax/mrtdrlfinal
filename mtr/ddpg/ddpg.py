@@ -6,7 +6,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
-from ddpg.utils import init_params
+from mtr.ddpg.utils import init_params
 
 
 class MLP(nn.Module): 
