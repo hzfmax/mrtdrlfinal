@@ -109,7 +109,7 @@ def learn(env_fn,
                         pop_opt1 = np.asarray(translated_decisions)
                         state_opt = state_ep
 
-                    if epoch % 500 == 0:
+                    if epoch % 5 == 0:
                         print(f'EP: {epoch}|EpR: {total_reward:.0f}| Q*: {q_opt:.0f}| T: {time.time()-start:.0f}|N:{noise.sigma:.3f}')
 
                     noise.step()
@@ -125,9 +125,9 @@ def learn(env_fn,
         print(f' pwc*: {pwc_opt:.0f}')
         print(f' opc*: {opc_opt:.0f}')
 
-        # out = dict(Q=q_opt, pwc_opt=pwc_opt, opc_opt=opc_opt, pop=pop_opt, pop_opt1=pop_opt1)
-        # outpath = osp.join(LOG_DIR, "1result.npy")
-        # np.save(outpath, out)
+        out = dict(Q=q_opt, pwc_opt=pwc_opt, opc_opt=opc_opt, pop=pop_opt, pop_opt1=pop_opt1)
+        outpath = osp.join(LOG_DIR, "500result.npy")
+        np.save(outpath, out)
 
         print("action")
         print(len(pop_opt1))

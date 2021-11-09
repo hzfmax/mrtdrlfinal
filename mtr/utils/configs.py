@@ -21,7 +21,7 @@ def get_ddpg_kwargs():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--hid_dims', default=[400, 300], type=int)
-    parser.add_argument('--batch_size', default=5000, type=int)
+    parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--tau', default=5e-3, type=float)
     parser.add_argument('--gamma', default=0.99, type=float)
     parser.add_argument('--lr_pi', default=5e-4, type=float)
@@ -29,7 +29,7 @@ def get_ddpg_kwargs():
     parser.add_argument('--lr_decay', default=0.1, type=float)
 
     # main variables
-    parser.add_argument('--epochs', default=100, type=int)
+    parser.add_argument('--epochs', default=500, type=int)
     parser.add_argument('--buffer_size', default=int(5e4), type=int)
     parser.add_argument('--eval_freq', default=200, type=int)
     parser.add_argument('--reward_scale', default=5000, type=int)
