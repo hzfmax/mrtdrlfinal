@@ -58,3 +58,4 @@ if __name__ == '__main__':
     data = get_EAL(False, True)
     for k, v in data.items():
         print(k, type(v))
+    print (data)

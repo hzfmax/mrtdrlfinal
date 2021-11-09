@@ -567,13 +567,27 @@ def plot_violin(simu_dict,
 
 
 if __name__ == '__main__':
-    from configs import get_env_kwargs
+    import numpy as np
     from env import TubeEnv
+    from utils.loader import get_EAL
 
-    env_kwargs = get_env_kwargs()
-    env = TubeEnv(**env_kwargs)
 
-    # plot_demand_station(env, False)
+    # from utils.configs import 
+    # from utils.configs import get_configs, set_global_seeds
+    # from env import TubeEnv
+    # args, akwargs, ekwargs = get_configs(algo='ddpg',
+    #                                      stochastic=False,
+    #                                      seed=0)
+    # set_global_seeds(args.seed)
+    # def env_fn():
+    #     return TubeEnv(**ekwargs)
+
+    # env_kwargs = get_env_kwargs()
+    # env = TubeEnv(**ekwargs)
+    data = get_EAL()
+    env = TubeEnv(data)
+
+    plot_demand_station(env, False)
     # plot_demand_overall(env, True)
     # plot_timetable(env, info['timetable'])
     # plot_timetable(env, info['timetable'])

@@ -178,11 +178,14 @@ class TubeEnv(Env):
             alpha=0.5,
             stochastic=False,
             random_factor=0.25,
-            headway_opt=7,
-            headway_int=30,
-            dwell_int=5,
+            headway_opt=5,
+            # headway_int=30,
+            headway_int=0,
+            # dwell_int=5,
+            dwell_int=0,
             dwell_opt=5,
-            run_int=10,
+            # run_int=10,
+            run_int=0,
             run_opt=5,
             seed=None
     ):
@@ -354,24 +357,35 @@ if __name__ == "__main__":
 
     # no optimization
     # for ele in np.linspace(-1, 1, 7):
-    for env in range(1000):
+    # 每一次回合开始，需要先执行 reset() 函数，返回初始观测信息，
+    # 然后根据标志位 done 的状态，来决定是否进行下一次回合。
+    for _ in range(1):
         env = TubeEnv(data)
         obs = env.reset()
-        # print("totol number of passengers:", int(env.CDD[-1, ...].sum()))
+        print("totol number of passengers:", int(env.CDD[-1, ...].sum()))
+        print(" passengers:", (env.CDD))
+
         done = False
         topc, tpwc = 0, 0
         timetable = []
+        staterecord=[]
         while not done:
+        # if done:
             # act = np.full(env.action_space.shape, ele)
-            act = env.action_space.sample()
+            act = env.action_space.sample() # take a random action
             actt, obs2, pwc, opc, done = env.step(act)
             timetable.append(actt)
+            staterecord.append(obs2)
             topc += opc
             tpwc += pwc
-        print(tpwc + topc)
-    # print(np.array(timetable))
-    # print(topc, tpwc, topc + tpwc, env.train, "\n", f"Last departure: {int(env.dpt[0])}", '\n', env.eff_board_t)
-    # print("completed")
+            # break
+        # print(tpwc + topc)
+    print(len(timetable))
+    print(np.array(timetable))
+    print(len(staterecord))
+    print(np.array(staterecord[0]))
+    print(topc, tpwc, topc + tpwc, env.train, "\n", f"Last departure: {int(env.dpt[0])}", '\n', env.eff_board_t)
+    print("completed")
 
 
     # acta = []
